@@ -22,11 +22,26 @@
   Create empty queue.
   Return NULL if could not allocate space.
 */
+
+int input_count(char *s) 
+{
+    int input_length = 0;
+    while(s[input_length] != '\0')
+    {
+        input_length++;
+    }
+
+    return input_length;
+}
+
 queue_t *q_new()
 {
     queue_t *q =  malloc(sizeof(queue_t));
-    /* What if malloc returned NULL? */
+    if(!q)
+        return NULL;
+
     q->head = NULL;
+    q->size = 0;
     return q;
 }
 
@@ -35,7 +50,21 @@ void q_free(queue_t *q)
 {
     /* How about freeing the list elements and the strings? */
     /* Free queue structure */
-    free(q);
+    if(q)
+    {
+        list_ele_t *curr = q->head;
+        list_ele_t *next;
+
+        while(curr)
+        {
+            next = curr->next;
+            free(curr->value);
+            free(curr);
+            curr = next;
+        }
+        
+        free(q);
+    }
 }
 
 /*
@@ -47,13 +76,36 @@ void q_free(queue_t *q)
  */
 bool q_insert_head(queue_t *q, char *s)
 {
+    // if q is null return false
+    if(!q)
+        return false;
+
+    // if malloc fails to allocate space return false
     list_ele_t *newh;
-    /* What should you do if the q is NULL? */
     newh = malloc(sizeof(list_ele_t));
-    /* Don't forget to allocate space for the string and copy it */
-    /* What if either call to malloc returns NULL? */
+    if(!newh)
+        return false;
+
+    unsigned int input_length = input_count(s);
+
+    // allocate list element value memory and copy string into it
+    // add 1 to malloc and copy for ending string character
+    // return false if malloc fails
+    newh->value = malloc(input_length+1);
+    if(!newh->value)
+    {
+        free(newh);
+        return false;
+    }
+    strncpy(newh->value, s, input_length+1);
+
     newh->next = q->head;
+
+    if(q->size == 0)
+        q->tail = newh;
+
     q->head = newh;
+    q->size++;
     return true;
 }
 
@@ -66,10 +118,42 @@ bool q_insert_head(queue_t *q, char *s)
   The function must explicitly allocate space and copy the string into it.
  */
 bool q_insert_tail(queue_t *q, char *s)
-{
-    /* You need to write the complete code for this function */
-    /* Remember: It should operate in O(1) time */
-    return false;
+{   
+    if(!q)
+        return false;
+
+    list_ele_t *newt;
+    newt = malloc(sizeof(list_ele_t));
+
+    if(!newt)
+        return false;
+
+    unsigned int input_length = input_count(s);
+
+    newt->value = malloc(input_length+1);
+    if(!newt->value)
+    {
+        free(newt);
+        return false;
+    }
+
+    strncpy(newt->value, s, input_length+1);
+
+    // if queue is empty set new tail to be queue's head and tail
+    // if queue is not empty keep track of queue's current tail
+    if(q->size == 0)
+        q->head = newt;
+    else
+    {
+        list_ele_t *curt;
+        curt = q->tail;
+        curt->next = newt; 
+    }
+    
+    newt->next = NULL;
+    q->tail = newt;
+    q->size++;
+    return true;
 }
 
 /*
@@ -82,8 +166,33 @@ bool q_insert_tail(queue_t *q, char *s)
 */
 bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
 {
-    /* You need to fix up this code. */
-    q->head = q->head->next;
+    if(!q || !q->head)
+        return false;
+
+    list_ele_t *curr = q->head;
+    q->head = curr->next;
+
+    int input_length = input_count(curr->value);
+
+    if(!sp){}
+    else if(bufsize-1 >= input_length)
+    {
+        strncpy(sp, curr->value, bufsize-1);
+        sp[input_length] = '\0';  
+    }
+    else
+    {
+        for(int i=0; i<bufsize-1; i++)
+        {
+            sp[i] = curr->value[i];
+        }
+        sp[bufsize-1] = '\0';
+    }
+
+    free(curr->value);
+    free(curr);
+    q->size--;
+
     return true;
 }
 
@@ -95,18 +204,36 @@ int q_size(queue_t *q)
 {
     /* You need to write the code for this function */
     /* Remember: It should operate in O(1) time */
-    return 0;
+    if(!q)
+        return 0;
+    else
+        return q->size;
 }
 
 /*
   Reverse elements in queue
-  No effect if q is NULL or empty
+  No effect if q is NULL or empty or size = 1
   This function should not allocate or free any list elements
   (e.g., by calling q_insert_head, q_insert_tail, or q_remove_head).
   It should rearrange the existing ones.
  */
 void q_reverse(queue_t *q)
 {
-    /* You need to write the code for this function */
-}
+    // only do something if q != NULL or q is greater than 1 element
+    if(q && q->size > 1)
+    {
+        list_ele_t *prev = NULL, *curr = q->head, *next = NULL;
+        list_ele_t *oldh = q->head, *oldt = q->tail;
 
+        while(curr)
+        {
+            next = curr->next;
+            curr->next = prev;
+            prev = curr;
+            curr = next;
+        }
+
+        q->head = oldt;
+        q->tail = oldh;
+    }
+}

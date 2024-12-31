@@ -26,6 +26,8 @@ typedef struct ELE {
 /* Queue structure */
 typedef struct {
     list_ele_t *head;  /* Linked list of elements */
+    list_ele_t *tail;
+    unsigned int size;
     /*
       You will need to add more fields to this structure
       to efficiently implement q_size and q_insert_tail
@@ -88,3 +90,6 @@ int q_size(queue_t *q);
   It should rearrange the existing ones.
  */
 void q_reverse(queue_t *q);
+
+// count input size used to allocate correct amount of money
+int input_count(char *s);
