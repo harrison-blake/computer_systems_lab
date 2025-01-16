@@ -207,7 +207,12 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  int lower = 0x2F;
+  int upper = 0x39;
+  int lt_lower = (x + (~lower)) >> 31;
+  int lt_upper = (x + (~upper)) >> 31;
+
+  return (!lt_lower) & (!!lt_upper);
 }
 /* 
  * conditional - same as x ? y : z 
@@ -227,7 +232,8 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  int lt = (y + (~x)) >> 31;
+  return !!lt;
 }
 //4
 /* 
